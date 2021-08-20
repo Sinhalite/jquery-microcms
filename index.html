@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>jQuery microCMS</title>
+  <meta name='viewport' news='width=device-width, initial-scale=1'>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="css/index.css">
+</head>
+
+<body>
+  <header>
+    静的な表示エリア
+  </header>
+  <div id="news">
+    <h1>ニュース</h1>
+    <p><a href="news_list.html">&gt; ニュース一覧</a></p>
+    <ul id="news-list"></ul>
+  </div>
+  <footer>
+    静的な表示エリア
+  </footer>
+  <script src="js/import.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous">
+    </script>
+  <script>
+    $(document).ready(function () {
+      const limit = 5;
+
+      fetch(
+        `https://${MICROCMS_DOMAIN}.microcms.io/api/v1/news?limit=${limit}`,
+        {
+          headers: {
+            "X-API-KEY": MICROCMS_API_KEY
+          }
+        }
+      )
+        .then(response => response.json())
+        .then(json => {
+          for (const news of json.contents) {
+            const title = `<a href='news.html?id=${news.id}' class='title'>` + news.title + "</a>";
+            const date = "<p class='date'>" + news.date.substr(0, 10) + "</p>";
+            const content = '<div class="content">' + news.content + "</div>";
+
+            $("#news-list").append(
+              '<li class="article">' +
+              date +
+              title +
+              "</li>"
+            );
+          }
+        })
+        .catch(e => {
+          console.log(e.message);
+        });
+    });
+  </script>
+</body>
+
+</html>

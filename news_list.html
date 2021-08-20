@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>jQuery microCMS</title>
+  <meta name='viewport' news='width=device-width, initial-scale=1'>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="css/news_list.css">
+</head>
+
+<body>
+  <header>
+    静的な表示エリア
+  </header>
+  <div id="news">
+    <h1>ニュース</h1>
+    <p><a href="index.html">&gt; トップ</a></p>
+    <ul id="news-list">
+
+    </ul>
+  </div>
+  <footer>
+    静的な表示エリア
+  </footer>
+  <script src="js/import.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous">
+    </script>
+  <script>
+
+    $(document).ready(function () {
+      const limit = 3;
+      const page = parseInt(new URLSearchParams(window.location.search).get("page")) || 1;
+      const offset = limit * (page - 1);
+
+      fetch(
+        `https://${MICROCMS_DOMAIN}.microcms.io/api/v1/news?limit=${limit}&offset=${offset}`,
+        {
+          headers: {
+            "X-API-KEY": MICROCMS_API_KEY
+          }
+        }
+      )
+        .then(response => response.json())
+        .then(json => {
+          for (const news of json.contents) {
+            const title = `<a href='news.html?id=${news.id}' class='title'>` + news.title + "</a>";
+            const date = "<p class='date'>" + news.date.substr(0, 10) + "</p>";
+            const content = '<div class="content">' + news.content + "</div>";
+
+            $("#news-list").append(
+              '<li class="article">' +
+              date +
+              title +
+              "</li>"
+            );
+          }
+
+          const totalCount = json.totalCount;
+          const pageCount = Math.ceil(totalCount / limit);
+          const pager = `<ul class="pager">${page >= 2 ? `<li><a href='news_list.html?page=${page - 1}'>&lt;</a></li>` : ""}
+            ${Array.from(Array(pageCount))
+              .map((noValue, index) => {
+                const targetPage = index + 1;
+                return targetPage === page
+                  ? `<li class="current">${index + 1}</li>`
+                  : `<li><a href='news_list.html?page=${index + 1}'>${index + 1}</a></li>`;
+              })
+              .join("\n")
+            }${page < pageCount
+              ? `<li><a href='news_list.html?page=${page + 1}'>&gt;</a></li>`
+              : ""
+            }</ul>`;
+          $("#news").append(pager);
+        })
+        .catch(e => {
+          console.log(e.message);
+        });
+    });
+  </script>
+</body>
+
+</html>
